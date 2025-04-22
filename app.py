@@ -5,7 +5,7 @@ import json
 import re
 
 # Title of the app
-st.title('Hörbar Articly Synthesis')
+st.title('Hörbar Article Synthesis')
 
 # Input field for articleId
 article_id = st.text_input('Enter Article ID')

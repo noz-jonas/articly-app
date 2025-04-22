@@ -85,5 +85,5 @@ if st.button('Fetch and Process'):
             result_text_clean = re.sub('<[^<]+?>', '', result_content)
 
             # Display the result
-            st.success("Processed Response from OpenAI:")
+            st.success("Hörbar Article Version:")
             st.text_area("Response:", value=result_text_clean, height=400)

@@ -1,16 +1,29 @@
 import streamlit as st
 import requests
-from requests.auth import HTTPBasicAuth
 import json
 import re
+from datetime import datetime
+from pydantic import BaseModel
+from typing import Optional
 
-# Title of the app
+class EvalData(BaseModel):
+    article_id: str
+    model_output: str
+    user_edit: Optional[str] = None
+
+# Titel der App
 st.title('Hörbar Article Synthesis')
 
-# Input field for articleId
+# Globale Evals-Konfiguration
+evals_enabled_default = st.secrets.get("api_tokens", {}).get("evals_enabled", False)
+
+# Benutzersteuerung für Evals
+evals_enabled = st.checkbox("Evals aktivieren", value=evals_enabled_default)
+
+# Eingabefeld für die Artikel-ID
 article_id = st.text_input('Enter Article ID')
 
-# Button to trigger the API calls
+# Button zum Auslösen der Verarbeitung
 if st.button('Fetch and Process'):
     with st.spinner('Processing article …'):
 
@@ -92,3 +105,54 @@ if st.button('Fetch and Process'):
                 # Display the result
                 st.success("Hörbar Article Version:")
                 st.text_area("Response:", value=result_text_clean, height=400)
+
+    # Erfolgreiche Antwort von OpenAI
+            result_content = openai_json['choices'][0]['message']['content']
+            result_text_clean = re.sub('<[^<]+?>', '', result_content)
+
+            if evals_enabled:
+                # Editierbares Textfeld für Benutzeranpassungen
+                edited_text = st.text_area("Bearbeite den generierten Text:", value=result_text_clean, height=400)
+                if st.button("Anpassung speichern"):
+                    eval_entry = {
+                        "timestamp": datetime.utcnow().isoformat(),
+                        "article_id": article_id,
+                        "model_output": result_text_clean,
+                        "user_edit": edited_text
+                    }
+                    with open("evals_log.jsonl", "a", encoding="utf-8") as f:
+                        f.write(json.dumps(eval_entry, ensure_ascii=False) + "\n")
+                    st.success("Anpassung gespeichert.")
+
+                    # Optional: Evals direkt an OpenAI senden
+                    try:
+                        import openai
+
+                        openai.api_key = st.secrets["api_tokens"]["openai_token"]
+                        organization_id = st.secrets["api_tokens"].get("openai_organization_id")
+
+                        if organization_id:
+                            openai.organization = organization_id
+
+                        eval_payload = {
+                            "input": [
+                                {"role": "system", "content": f"Originalartikel:\n{result_text_clean}"},
+                                {"role": "user", "content": "Bitte optimiere diesen Artikel für die Hörversion."}
+                            ],
+                            "ideal": [edited_text],
+                            "metadata": {
+                                "article_id": article_id,
+                                "submitted_from": "streamlit-hoerbar-app"
+                            }
+                        }
+
+                        # Optionaler API-Aufruf für ein hypothetisches Evals-Endpunkt
+                        # openai.Evals.submit_feedback(**eval_payload)
+
+                        st.info("Feedback wurde lokal gespeichert. Optional: EvalPayload vorbereitet für OpenAI.")
+
+                    except Exception as e:
+                        st.warning(f"Evals-Upload an OpenAI nicht möglich: {e}")
+            else:
+                # Nicht editierbares Textfeld
+                st.text_area("Generierter Text:", value=result_text_clean, height=400)

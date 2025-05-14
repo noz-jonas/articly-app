@@ -54,7 +54,3 @@ streamlit run app.py
 ## 🖥 Deployment
 
 To deploy on [Streamlit Cloud](https://streamlit.io/cloud), set the same secrets in the Cloud UI under *App Settings → Secrets*.
-
-## 📄 License
-
-MIT License.

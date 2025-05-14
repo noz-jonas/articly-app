@@ -123,30 +123,54 @@ if st.button('Fetch and Process'):
                     # Optional: Evals direkt an OpenAI senden
                     try:
                         import openai
+                        import os
 
                         openai.api_key = st.secrets["api_tokens"]["openai_token"]
                         organization_id = st.secrets["api_tokens"].get("openai_organization_id")
-
                         if organization_id:
                             openai.organization = organization_id
 
-                        eval_payload = {
-                            "input": [
-                                {"role": "system", "content": f"Originalartikel:\n{result_text_clean}"},
-                                {"role": "user", "content": "Bitte optimiere diesen Artikel für die Hörversion."}
+                        # Create evaluation config
+                        eval_config = {
+                            "data_source_config": {
+                                "type": "custom",
+                                "item_schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "input_text": {"type": "string"},
+                                        "ideal_response": {"type": "string"}
+                                    },
+                                    "required": ["input_text", "ideal_response"]
+                                }
+                            },
+                            "testing_criteria": [
+                                {
+                                    "name": "Eval check",
+                                    "type": "string_match",
+                                    "input": "{{ sample.output_text }}",
+                                    "reference": "{{ item.ideal_response }}"
+                                }
                             ],
-                            "ideal": [edited_text],
                             "metadata": {
-                                "article_id": article_id,
-                                "submitted_from": "streamlit-hoerbar-app"
+                                "description": "Eval from streamlit-hoerbar-app"
                             }
                         }
 
-                        response = openai.evals.create(
-                            evaluation_data=eval_payload
+                        eval_response = openai.evals.create(**eval_config)
+                        eval_id = eval_response["id"]
+
+                        # Prepare single eval sample
+                        test_data = [{
+                            "input_text": result_text_clean,
+                            "ideal_response": edited_text
+                        }]
+
+                        run_response = openai.evals.run(
+                            eval_id=eval_id,
+                            test_data=test_data
                         )
 
-                        st.info(f"Eval wurde an OpenAI übermittelt. Eval-ID: {response.get('id')}")
+                        st.info(f"Eval wurde an OpenAI übermittelt. Eval-ID: {eval_id}, Run-ID: {run_response['id']}")
 
                     except Exception as e:
                         st.warning(f"Evals-Upload an OpenAI nicht möglich: {e}")

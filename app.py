@@ -106,10 +106,6 @@ if st.button('Fetch and Process'):
                 st.success("Hörbar Article Version:")
                 st.text_area("Response:", value=result_text_clean, height=400)
 
-    # Erfolgreiche Antwort von OpenAI
-            result_content = openai_json['choices'][0]['message']['content']
-            result_text_clean = re.sub('<[^<]+?>', '', result_content)
-
             if evals_enabled:
                 # Editierbares Textfeld für Benutzeranpassungen
                 edited_text = st.text_area("Bearbeite den generierten Text:", value=result_text_clean, height=400)
@@ -146,10 +142,11 @@ if st.button('Fetch and Process'):
                             }
                         }
 
-                        # Optionaler API-Aufruf für ein hypothetisches Evals-Endpunkt
-                        # openai.Evals.submit_feedback(**eval_payload)
+                        response = openai.evals.create(
+                            evaluation_data=eval_payload
+                        )
 
-                        st.info("Feedback wurde lokal gespeichert. Optional: EvalPayload vorbereitet für OpenAI.")
+                        st.info(f"Eval wurde an OpenAI übermittelt. Eval-ID: {response.get('id')}")
 
                     except Exception as e:
                         st.warning(f"Evals-Upload an OpenAI nicht möglich: {e}")

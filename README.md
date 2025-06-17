@@ -1,6 +1,6 @@
 # 🗣️ Article Hörbar Synthesis App
 
-This is a Streamlit-based web application that transforms news articles into audio-friendly summaries using OpenAI's language models — with built-in support for real-time evaluation and feedback collection through the OpenAI Evals API.
+This is a Streamlit-based web application that transforms news articles into audio-friendly summaries using OpenAI's language models.
 
 ---
 
@@ -9,8 +9,6 @@ This is a Streamlit-based web application that transforms news articles into aud
 - 🔐 Secure integration with an internal Exporter API (Basic Auth)
 - 📄 Automatic parsing of article `title` and `text`
 - 🤖 Summarization and optimization using OpenAI models
-- 🧪 User-correctable output with automatic feedback submission to OpenAI Evals
-- 🔁 Editable result fields and live updates
 - 📤 Optional local JSONL logging
 - 📢 Optimized for text-to-speech playback
 - 🛠️ Error handling, loading animations, and evaluation toggles
@@ -38,9 +36,7 @@ pip install -r requirements.txt
 [api_tokens]
 exporter_auth_token = "your_exporter_token"
 openai_token = "your_openai_api_key"
-openai_organization_id = "org-..."  # Optional, for Evals API
 exporter_api_base_url = "https://your-exporter-api-url/"
-evals_enabled = true
 ```
 
 4. **Run the app locally**
@@ -57,19 +53,6 @@ streamlit run app.py
 - The app fetches the article via the Exporter API.
 - It extracts `title` and `text`, and sends them to OpenAI for summarization.
 - The summarized result is shown in a text area.
-- If Evals mode is enabled (via checkbox or `secrets.toml`), users can:
-  - Edit the AI-generated text
-  - Submit corrections directly to OpenAI's Evals API
-  - View confirmation of Eval + Run IDs
-
----
-
-## 🔁 Feedback Collection and Evals
-
-- User edits are submitted as `ideal_response` evaluations
-- Evals are automatically created and run using OpenAI’s `/evals` endpoint
-- App displays success or error messages per submission
-- Local backup in `evals_log.jsonl` is optional and used for redundancy
 
 ---
 

@@ -6,19 +6,8 @@ from datetime import datetime
 from pydantic import BaseModel
 from typing import Optional
 
-class EvalData(BaseModel):
-    article_id: str
-    model_output: str
-    user_edit: Optional[str] = None
-
 # Titel der App
 st.title('Hörbar Article Synthesis')
-
-# Globale Evals-Konfiguration
-evals_enabled_default = st.secrets.get("api_tokens", {}).get("evals_enabled", False)
-
-# Benutzersteuerung für Evals
-evals_enabled = st.checkbox("Evals aktivieren", value=evals_enabled_default)
 
 # Eingabefeld für die Artikel-ID
 article_id = st.text_input('Enter Article ID')
@@ -104,76 +93,4 @@ if st.button('Fetch and Process'):
 
                 # Display the result
                 st.success("Hörbar Article Version:")
-                st.text_area("Response:", value=result_text_clean, height=400)
-
-            if evals_enabled:
-                # Editierbares Textfeld für Benutzeranpassungen
-                edited_text = st.text_area("Bearbeite den generierten Text:", value=result_text_clean, height=400)
-                if st.button("Anpassung speichern"):
-                    eval_entry = {
-                        "timestamp": datetime.utcnow().isoformat(),
-                        "article_id": article_id,
-                        "model_output": result_text_clean,
-                        "user_edit": edited_text
-                    }
-                    with open("evals_log.jsonl", "a", encoding="utf-8") as f:
-                        f.write(json.dumps(eval_entry, ensure_ascii=False) + "\n")
-                    st.success("Anpassung gespeichert.")
-
-                    # Optional: Evals direkt an OpenAI senden
-                    try:
-                        import openai
-                        import os
-
-                        openai.api_key = st.secrets["api_tokens"]["openai_token"]
-                        organization_id = st.secrets["api_tokens"].get("openai_organization_id")
-                        if organization_id:
-                            openai.organization = organization_id
-
-                        # Create evaluation config
-                        eval_config = {
-                            "data_source_config": {
-                                "type": "custom",
-                                "item_schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "input_text": {"type": "string"},
-                                        "ideal_response": {"type": "string"}
-                                    },
-                                    "required": ["input_text", "ideal_response"]
-                                }
-                            },
-                            "testing_criteria": [
-                                {
-                                    "name": "Eval check",
-                                    "type": "string_match",
-                                    "input": "{{ sample.output_text }}",
-                                    "reference": "{{ item.ideal_response }}"
-                                }
-                            ],
-                            "metadata": {
-                                "description": "Eval from streamlit-hoerbar-app"
-                            }
-                        }
-
-                        eval_response = openai.evals.create(**eval_config)
-                        eval_id = eval_response["id"]
-
-                        # Prepare single eval sample
-                        test_data = [{
-                            "input_text": result_text_clean,
-                            "ideal_response": edited_text
-                        }]
-
-                        run_response = openai.evals.run(
-                            eval_id=eval_id,
-                            test_data=test_data
-                        )
-
-                        st.info(f"Eval wurde an OpenAI übermittelt. Eval-ID: {eval_id}, Run-ID: {run_response['id']}")
-
-                    except Exception as e:
-                        st.warning(f"Evals-Upload an OpenAI nicht möglich: {e}")
-            else:
-                # Nicht editierbares Textfeld
                 st.text_area("Generierter Text:", value=result_text_clean, height=400)

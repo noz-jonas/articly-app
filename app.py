@@ -6,8 +6,8 @@ from typing import Optional
 
 article_id = st.text_input('Enter Article ID')
 
-if st.button('Fetch and Process'):
-    with st.spinner('Processing article …'):
+if st.button('Fetch'):
+    with st.spinner('Fetching article …'):
 
         exporter_api_url = f"{st.secrets['api_tokens']['exporter_api_base_url']}{article_id}/"
         

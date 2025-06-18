@@ -33,3 +33,6 @@ if st.button('Fetch and Process'):
             if not title or not text:
                 st.warning("Exporter API returned empty title or text.")
                 st.stop()
+            
+            # Display full JSON from Exporter API
+            st.json(exporter_json)

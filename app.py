@@ -35,15 +35,17 @@ if st.button('Fetch'):
                 st.warning("Exporter API returned empty title or text.")
                 st.stop()
             
-            # Display full JSON from Exporter API
-            st.json(exporter_json)
-
             json_str = json.dumps(exporter_json, indent=2)
             st.text_area("JSON Output", json_str, height=300)
 
-            copy_button_code = f"""
-                <textarea id='json-data' style='opacity:0; height:0;'>{json_str}</textarea>
-                <button onclick="navigator.clipboard.writeText(document.getElementById('json-data').value)">📋 Copy JSON to clipboard</button>
-            """
+            components.html(f"""
+                <script>
+                  function copyJSON() {{
+                    navigator.clipboard.writeText(`{json_str}`);
+                    alert("JSON copied to clipboard!");
+                  }}
+                </script>
+            """, height=0)
 
-            components.html(copy_button_code, height=50)
+            if st.button("JSON kopieren"):
+                components.html("<script>copyJSON()</script>", height=0)

@@ -1,6 +1,7 @@
 import streamlit as st
 import requests
 import json
+import pyperclip
 from datetime import datetime
 from typing import Optional
 
@@ -36,3 +37,9 @@ if st.button('Fetch'):
             
             # Display full JSON from Exporter API
             st.json(exporter_json)
+
+            json_str = json.dumps(exporter_json, indent=2)
+
+            if st.button("📋 Copy"):
+                pyperclip.copy(json_str)
+                st.success("JSON in Zwischenablage kopiert!")

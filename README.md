@@ -1,6 +1,7 @@
-# 🗣️ Article Hörbar Synthesis App
+# 🗣️ Articly App
 
-This is a Streamlit-based web application that transforms news articles into audio-friendly summaries using OpenAI's language models.
+This is a Streamlit-based web application called **Articly App** that transforms news articles into audio-friendly summaries using OpenAI's language models.
+
 
 ---
 
@@ -20,8 +21,8 @@ This is a Streamlit-based web application that transforms news articles into aud
 1. **Clone the repository**
 
 ```bash
-git clone https://github.com/your-username/article-hoerbar-synthesis.git
-cd article-hoerbar-synthesis
+git clone https://github.com/your-username/articly-app.git
+cd articly-app
 ```
 
 2. **Install dependencies**

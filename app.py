@@ -1,9 +1,9 @@
 import streamlit as st
 import requests
 import json
-import pyperclip
 from datetime import datetime
 from typing import Optional
+import streamlit.components.v1 as components
 
 article_id = st.text_input('Enter Article ID')
 
@@ -39,7 +39,11 @@ if st.button('Fetch'):
             st.json(exporter_json)
 
             json_str = json.dumps(exporter_json, indent=2)
+            st.text_area("JSON Output", json_str, height=300)
 
-            if st.button("📋 Copy"):
-                pyperclip.copy(json_str)
-                st.success("JSON in Zwischenablage kopiert!")
+            copy_button_code = f"""
+                <textarea id='json-data' style='opacity:0; height:0;'>{json_str}</textarea>
+                <button onclick="navigator.clipboard.writeText(document.getElementById('json-data').value)">📋 Copy JSON to clipboard</button>
+            """
+
+            components.html(copy_button_code, height=50)
